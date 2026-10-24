@@ -246,6 +246,15 @@ def test_pinned_npx_is_clean():
     assert "CIV503" not in ids
 
 
+def test_npx_with_variable_version_is_clean():
+    """`npx pkg@$VERSION` is pinned by the caller, not resolved to latest."""
+    ids, _ = scan(
+        "on: push\njobs:\n  a:\n    runs-on: ubuntu-latest\n    steps:\n"
+        "      - run: npx --yes some-tool@$VERSION --version\n"
+    )
+    assert "CIV503" not in ids
+
+
 def test_set_output():
     ids, _ = scan("on: push\njobs:\n  a:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo ::set-output name=x::1\n")
     assert "CIV504" in ids

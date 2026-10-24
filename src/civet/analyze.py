@@ -41,7 +41,8 @@ SECURITY_STEP_RE = re.compile(r"audit|lint|scan|verify|signature|sign|sast|check
 FIRST_PARTY = ("actions/", "github/", "./", ".github/", "docker://")
 SHA_PIN = re.compile(r"^[0-9a-f]{40}$")
 BRANCH_REF = re.compile(r"^(?:main|master|develop|dev|latest|HEAD|stable|nightly)$", re.IGNORECASE)
-VERSIONED = re.compile(r"@\d|==\d|@v?\d+\.\d+")
+# `@$VAR` counts as pinned: the version is supplied, not resolved to latest.
+VERSIONED = re.compile(r"@\d|@\$|==\d|@v?\d+\.\d+")
 
 
 def _exprs(text: str) -> list[str]:
