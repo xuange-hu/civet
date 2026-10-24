@@ -24,11 +24,14 @@ TAINTED_COND = re.compile(
 )
 
 SHELL_PIPE = re.compile(
-    r"(?:curl|wget)\b[^\n|]*\|[^\n]*(?:ba)?sh\b|"
-    r"\|\s*(?:sudo\s+)?(?:ba|z|fi)?sh\b|"
-    r"\|\s*(?:sudo\s+)?python[0-9.]*\b|"
-    r"\|\s*(?:sudo\s+)?perl\b"
+    # a network fetch piped into an interpreter
+    r"(?:curl|wget)\b[^\n|]*\|[^\n]*(?:ba|z|fi|k)?sh\b|"
+    r"(?:curl|wget)\b[^\n|]*\|[^\n]*(?:python|perl|ruby|node)[0-9.]*\b|"
+    # anything piped into a shell is dynamic execution
+    r"\|\s*(?:sudo\s+)?(?:ba|z|fi|k)?sh\b"
 )
+# `cmd | python -c "..."` is deliberately NOT flagged: the data never leaves the
+# machine. Flagging it produced a false positive on a real CI step.
 EVAL = re.compile(r"\beval\b|\b(?:ba|z|da)?sh\s+-c\s+[\"']?\$|\bexec\s+[\"']?\$")
 TOOL_RUN = re.compile(r"\b(?:npx|uvx|pipx\s+run|go\s+run|bunx)\b")
 OUTPUT_CMD = re.compile(r"::(?:set-output|save-state)\s+name=")
