@@ -103,6 +103,30 @@ def _split_key(content: str) -> tuple[str, str] | None:
     return None
 
 
+def _strip_comment(text: str) -> str:
+    """Drop a trailing ``# comment`` from a plain scalar (quote-aware).
+
+    Without this, `id-token: write   # required for OIDC` parses as the whole
+    string — which silently corrupts every scalar that carries a note.
+    """
+    quote: str | None = None
+    out: list[str] = []
+    for i, ch in enumerate(text):
+        if quote:
+            out.append(ch)
+            if ch == quote:
+                quote = None
+            continue
+        if ch in "\"'":
+            quote = ch
+            out.append(ch)
+            continue
+        if ch == "#" and (i == 0 or text[i - 1] in " \t"):
+            break
+        out.append(ch)
+    return "".join(out).rstrip()
+
+
 def _unquote(text: str) -> str:
     text = text.strip()
     if len(text) >= 2 and text[0] == text[-1] and text[0] in "\"'":
@@ -259,6 +283,7 @@ class _Parser:
                 # silently dropping content we do not understand.
                 raise YamlError(f"line {self._lineno()}: expected 'key: value', got {content!r}")
             key_raw, rest = kv
+            rest = _strip_comment(rest)
             key = _unquote(key_raw)
             line = self._lineno()
             self.i += 1
@@ -284,7 +309,7 @@ class _Parser:
             ind, content = cur
             if ind != indent or not (content == "-" or content.startswith("- ")):
                 break
-            rest = content[1:]
+            rest = _strip_comment(content[1:])
             offset = len(rest) - len(rest.lstrip(" \t"))
             child_indent = indent + 1 + offset
             line = self._lineno()
@@ -338,7 +363,7 @@ class _Parser:
         return S(" ".join(parts), self._lineno())
 
     def _value(self, rest: str, line: int) -> Any:
-        rest = rest.strip()
+        rest = _strip_comment(rest).strip()
         if rest.startswith(("[", "{")):
             # flow collection: support nested brackets across continuation lines
             buf = rest

@@ -7,7 +7,7 @@
 36 条确定性规则 · 零依赖 · 证据式输出 · SARIF 直传 CI · 自带 MCP Server
 
 [![CI](https://github.com/xuange-hu/civet/actions/workflows/ci.yml/badge.svg)](https://github.com/xuange-hu/civet/actions/workflows/ci.yml)
-[![tests](https://img.shields.io/badge/tests-143%20passing-brightgreen.svg)](tests/)
+[![tests](https://img.shields.io/badge/tests-160%20passing-brightgreen.svg)](tests/)
 [![rules](https://img.shields.io/badge/rules-36-red.svg)](#规则表)
 [![Dependencies](https://img.shields.io/badge/dependencies-0-blue.svg)](pyproject.toml)
 [![MCP](https://img.shields.io/badge/MCP-4%20tools-green.svg)](https://modelcontextprotocol.io)
@@ -209,7 +209,7 @@ Claude Code / Cursor 配置：
 ```bash
 git clone https://github.com/xuange-hu/civet && cd civet
 pip install -e ".[mcp]"
-PYTHONPATH=src pytest -q     # 143 个测试
+PYTHONPATH=src pytest -q     # 160 个测试
 ```
 
 新增一条规则要动三处：`rules.py`（id、严重级、why、fix）、`analyze.py`（检测逻辑）、

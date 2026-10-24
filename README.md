@@ -7,7 +7,7 @@
 36 deterministic rules · zero dependencies · evidence-first · SARIF for CI · MCP server
 
 [![CI](https://github.com/xuange-hu/civet/actions/workflows/ci.yml/badge.svg)](https://github.com/xuange-hu/civet/actions/workflows/ci.yml)
-[![tests](https://img.shields.io/badge/tests-143%20passing-brightgreen.svg)](tests/)
+[![tests](https://img.shields.io/badge/tests-160%20passing-brightgreen.svg)](tests/)
 [![rules](https://img.shields.io/badge/rules-36-red.svg)](#rule-map)
 [![Dependencies](https://img.shields.io/badge/dependencies-0-blue.svg)](pyproject.toml)
 [![MCP](https://img.shields.io/badge/MCP-4%20tools-green.svg)](https://modelcontextprotocol.io)
@@ -219,7 +219,7 @@ pipeline. They are being fixed, not suppressed.
 ```bash
 git clone https://github.com/xuange-hu/civet && cd civet
 pip install -e ".[mcp]"
-PYTHONPATH=src pytest -q     # 143 tests
+PYTHONPATH=src pytest -q     # 160 tests
 ```
 
 Adding a rule means touching three places: `rules.py` (id, severity, why, fix),

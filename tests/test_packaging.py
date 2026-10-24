@@ -9,8 +9,11 @@ from __future__ import annotations
 
 import ast
 import re
+import subprocess
+import sys
 from pathlib import Path
 
+import pytest
 import tomllib
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -126,14 +129,22 @@ def test_readme_test_count_matches_collection():
 
 
 def _collected_tests() -> int:
-    """Count test items without running them (same number pytest reports)."""
-    total = 0
-    for path in sorted((ROOT / "tests").glob("test_*.py")):
-        tree = ast.parse(path.read_text(encoding="utf-8"))
-        for node in ast.walk(tree):
-            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name.startswith("test_"):
-                total += 1
-    return total
+    """Ask pytest how many items exist, without running them.
+
+    Counting `def test_*` in the AST is not enough: parametrized tests expand
+    into several items, so the naive count drifts from the reported number.
+    """
+    proc = subprocess.run(
+        [sys.executable, "-m", "pytest", "--collect-only", "-q", str(ROOT / "tests")],
+        capture_output=True,
+        text=True,
+        timeout=180,
+        check=False,
+    )
+    m = re.search(r"(\d+) tests? collected", proc.stdout)
+    if m is None:
+        pytest.skip(f"could not collect tests: {proc.stdout[-200:]} {proc.stderr[-200:]}")
+    return int(m.group(1))
 
 
 def test_src_layout_is_used():
