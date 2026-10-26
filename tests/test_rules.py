@@ -188,6 +188,39 @@ def test_reusable_workflow_not_pinned():
     assert "CIV306" in ids
 
 
+SARIF_JOB = (
+    "on: push\n"
+    "permissions:\n  contents: read\n"
+    "jobs:\n  a:\n    runs-on: ubuntu-latest\n    steps:\n"
+    "      - uses: github/codeql-action/upload-sarif@" + "c" * 40 + "\n"
+    "        with:\n          sarif_file: r.sarif\n"
+)
+
+
+def test_sarif_upload_without_security_events_write():
+    ids, findings = scan(SARIF_JOB)
+    assert "CIV307" in ids
+    hit = next(f for f in findings if f.rule.id == "CIV307")
+    assert hit.line >= 1 and "upload-sarif" in hit.snippet
+
+
+def test_sarif_upload_with_job_level_permission_is_clean():
+    granted = SARIF_JOB.replace(
+        "  a:\n    runs-on: ubuntu-latest\n",
+        "  a:\n    runs-on: ubuntu-latest\n"
+        "    permissions:\n      contents: read\n      security-events: write\n",
+    )
+    assert "CIV307" not in scan(granted)[0]
+
+
+def test_sarif_upload_with_workflow_level_permission_is_clean():
+    granted = SARIF_JOB.replace(
+        "permissions:\n  contents: read\n",
+        "permissions:\n  contents: read\n  security-events: write\n",
+    )
+    assert "CIV307" not in scan(granted)[0]
+
+
 def test_secrets_inherit():
     ids, _ = scan("on: push\njobs:\n  a:\n    uses: org/repo/.github/workflows/x.yml@" + "c" * 40 + "\n    secrets: inherit\n")
     assert "CIV402" in ids

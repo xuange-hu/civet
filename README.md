@@ -4,11 +4,11 @@
 
 **A security auditor for GitHub Actions workflows that runs anywhere Python runs.**
 
-36 deterministic rules · zero dependencies · evidence-first · SARIF for CI · MCP server
+37 deterministic rules · zero dependencies · evidence-first · SARIF for CI · MCP server
 
 [![CI](https://github.com/xuange-hu/civet/actions/workflows/ci.yml/badge.svg)](https://github.com/xuange-hu/civet/actions/workflows/ci.yml)
-[![tests](https://img.shields.io/badge/tests-172%20passing-brightgreen.svg)](tests/)
-[![rules](https://img.shields.io/badge/rules-36-red.svg)](#rule-map)
+[![tests](https://img.shields.io/badge/tests-175%20passing-brightgreen.svg)](tests/)
+[![rules](https://img.shields.io/badge/rules-37-red.svg)](#rule-map)
 [![Dependencies](https://img.shields.io/badge/dependencies-0-blue.svg)](pyproject.toml)
 [![MCP](https://img.shields.io/badge/MCP-4%20tools-green.svg)](https://modelcontextprotocol.io)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
@@ -72,7 +72,7 @@ same tree always produce the same report.
 Real output from `civet demo` (trimmed to high and above):
 
 ```
-  scanning ./civet-demo  ·  2 workflow file(s)  ·  36 rules
+  scanning ./civet-demo  ·  2 workflow file(s)  ·  37 rules
 
   .github/workflows/civet-demo.yml
     line 13   HIGH     CIV205  Self-hosted runner reachable from a fork-triggered event
@@ -133,7 +133,7 @@ CIV201  CRITICAL  [trigger]
 | `hygiene` | 6 | `permissions:`, `timeout-minutes`, environment protection, concurrency |
 
 ```bash
-civet rules                     # all 36 with severity
+civet rules                     # all 37 with severity
 civet rules | grep injection    # one group
 ```
 

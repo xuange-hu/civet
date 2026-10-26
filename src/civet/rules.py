@@ -212,6 +212,21 @@ RULES: dict[str, Rule] = {
             "CWE-522",
         ),
         _r(
+            "CIV307",
+            "SARIF upload without security-events: write",
+            "medium",
+            "hygiene",
+            "github/codeql-action/upload-sarif (and any SARIF uploader) calls the code "
+            "scanning API, which requires security-events: write. With only contents: "
+            "read the action answers 'Resource not accessible by integration' and the job "
+            "goes red -- or, worse, silently skips when continue-on-error is set, and you "
+            "believe your scanning works. This one is personal: civet did not have this "
+            "rule while its own self-scan job was failing for exactly this reason.",
+            "Add permissions: {contents: read, security-events: write} to the job that "
+            "uploads SARIF (or to the workflow).",
+            "CWE-1188",
+        ),
+        _r(
             "CIV306",
             "Reusable workflow not pinned to a SHA",
             "medium",

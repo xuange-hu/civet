@@ -97,6 +97,12 @@ jobs:
   self-scan:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # codeql-action/upload-sarif needs security-events: write; with only
+    # `contents: read` from the top of the file the upload answered
+    # "Resource not accessible by integration" and the job went red.
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
         with:

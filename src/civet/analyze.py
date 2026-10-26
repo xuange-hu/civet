@@ -38,6 +38,8 @@ OUTPUT_CMD = re.compile(r"::(?:set-output|save-state)\s+name=")
 GITHUB_FILE = re.compile(r">>\s*\$?\{?GITHUB_(?:ENV|PATH|OUTPUT)\}?")
 DEPLOY_RE = re.compile(r"deploy|release|publish|ship|terraform|\bprod\b", re.IGNORECASE)
 SECURITY_STEP_RE = re.compile(r"audit|lint|scan|verify|signature|sign|sast|check", re.IGNORECASE)
+# Any SARIF uploader: CodeQL's, or a third-party action that posts to the same API.
+SARIF_UPLOAD_RE = re.compile(r"(?:upload-sarif|sarif-upload|upload_sarif)\b", re.IGNORECASE)
 FIRST_PARTY = ("actions/", "github/", "./", ".github/", "docker://")
 SHA_PIN = re.compile(r"^[0-9a-f]{40}$")
 BRANCH_REF = re.compile(r"^(?:main|master|develop|dev|latest|HEAD|stable|nightly)$", re.IGNORECASE)
@@ -314,6 +316,39 @@ def _check_step(wf: Workflow, job: Job, step: Step, emit: Callable[..., None]) -
     # --- hygiene -------------------------------------------------------
     if step.continue_on_error and SECURITY_STEP_RE.search(label or run):
         emit("CIV702", line, f"'{label}' is a check but cannot fail the build.", jid, label)
+
+    if SARIF_UPLOAD_RE.search(uses) and not _security_events_write(wf, job):
+        emit(
+            "CIV307",
+            line,
+            "SARIF upload needs security-events: write; neither this job nor the "
+            "workflow grants it, so the upload fails (or is skipped) at run time.",
+            jid,
+            label,
+        )
+
+
+def _security_events_write(wf: Workflow, job: Job) -> bool:
+    """True when the effective permissions grant security-events: write.
+
+    Job-level `permissions:` overrides the workflow-level block, so the job has
+    to be checked first. `write` satisfies `write`; `read` does not, and
+    `write-all` is the only string form that grants it implicitly.
+    """
+    for scope in (job.permissions, wf.permissions):
+        if scope is None:
+            continue
+        text = str(scope).strip().lower()
+        if text in ("write-all", "read-all"):
+            return text == "write-all"
+        if not isinstance(scope, dict):
+            continue
+        value = str(scope.get("security-events", scope.get("security_events", ""))).strip().lower()
+        if value == "write":
+            return True
+        if value:  # an explicit narrower value (none/read) settles it
+            return False
+    return False
 
 
 def check_event_triggers(wf: Workflow) -> list[Finding]:

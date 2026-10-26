@@ -60,6 +60,13 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           notes: ${{ github.event.issue.body }}
 
+      - name: Upload scan results
+        # No permissions: block anywhere in this workflow, so the uploader has
+        # no security-events scope and the API call is rejected at run time.
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
+
       - name: Audit
         run: npm audit || true
         continue-on-error: true
