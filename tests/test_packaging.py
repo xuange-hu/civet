@@ -122,6 +122,25 @@ def test_version_matches_init():
     assert f'__version__ = "{project["version"]}"' in init
 
 
+def _optional_test_deps_present() -> bool:
+    """The badge number is only meaningful where every test can run.
+
+    Several test modules need optional packages (`mcp` for the server tests,
+    PyYAML for the parser differential) and skip themselves when those are
+    absent. The base CI job installs neither, so it collects ~155 items while a
+    full environment collects 172: comparing the badge there failed for a week
+    with no actual drift. Enforcement moved to the badge job, which installs
+    `.[mcp]` + PyYAML.
+    """
+    import importlib.util
+
+    return all(importlib.util.find_spec(name) is not None for name in ("mcp", "yaml"))
+
+
+@pytest.mark.skipif(
+    not _optional_test_deps_present(),
+    reason="badge count is validated where the optional test deps are installed",
+)
 def test_readme_test_count_matches_collection():
     """Reads the badge in README.md; keeps the headline number honest."""
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
@@ -139,12 +158,14 @@ def _collected_tests() -> int:
     into several items, so the naive count drifts from the reported number.
     """
     proc = subprocess.run(
-        [sys.executable, "-m", "pytest", "--collect-only", "-q", str(ROOT / "tests")],
+        [sys.executable, "-m", "pytest", "--collect-only", "-q", "-o", "addopts=", str(ROOT / "tests")],
         capture_output=True,
         text=True,
         timeout=180,
         check=False,
     )
+    # -o addopts= protects against a project-level addopts="-q": -qq drops the
+    # "N tests collected" summary and this silently fell back to skipping.
     m = re.search(r"(\d+) tests? collected", proc.stdout)
     if m is None:
         pytest.skip(f"could not collect tests: {proc.stdout[-200:]} {proc.stderr[-200:]}")
