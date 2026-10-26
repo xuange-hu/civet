@@ -14,7 +14,14 @@ import sys
 from pathlib import Path
 
 import pytest
-import tomllib
+
+try:
+    import tomllib
+except ModuleNotFoundError:  # Python <= 3.10: tomllib landed in 3.11
+    import sys
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import _pytoml as tomllib  # type: ignore[no-redef]
 
 ROOT = Path(__file__).resolve().parents[1]
 PYPROJECT = ROOT / "pyproject.toml"
@@ -63,20 +70,17 @@ def test_every_console_script_target_module_resolves():
 
 
 def test_stdlib_only_imports_in_cli_entrypoint():
-    """`civet` must run with zero third-party packages installed."""
-    allowed_stlib = {
-        "argparse",
-        "json",
-        "os",
-        "sys",
-        "tempfile",
-        "re",
-        "dataclasses",
-        "typing",
-        "__future__",
-    }
+    """`civet` must run with zero third-party packages installed.
+
+    The allow-list used to be hard-coded, so adding a stdlib module that was
+    not on it (``contextlib``, when the Windows UTF-8 guard landed) turned this
+    into a false failure that looked like a real dependency leak. Compare
+    against the interpreter's own stdlib inventory instead: that is the actual
+    claim being made.
+    """
+    stdlib = set(sys.stdlib_module_names) | {"__future__"}
     imports = _collect_imports(SRC / "cli.py")
-    third_party = {i for i in imports if i not in allowed_stlib and i != "civet"}
+    third_party = {i for i in imports if i not in stdlib and i != "civet"}
     assert third_party == set(), f"cli.py pulls in {third_party}"
 
 

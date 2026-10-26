@@ -25,10 +25,15 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install (zero dependencies)
+      - name: Install (zero runtime dependencies)
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e .
+          # pytest is a dev tool, not a dependency: the zero-dependency promise is
+          # about what `pip install civet-audit` drags in, and the check below
+          # proves that. Not installing it made `python -m pytest` exit 1 on every
+          # matrix leg and turned the badge red for a week.
+          python -m pip install pytest
           python -c "import civet, sys; print('imported with deps:', [m for m in sys.modules if m in ('yaml','click','rich','requests')])"
           python -c "
           import subprocess, sys
@@ -74,10 +79,14 @@ jobs:
       - name: README test-count badge vs pytest collection
         run: |
           python -m pip install pytest
-          actual=$(python -m pytest --collect-only -q 2>/dev/null | grep -oE "[0-9]+ tests? collected" | grep -oE "^[0-9]+")
-          claimed=$(grep -oE "tests-[0-9]+%20passing" README.md | grep -oE "[0-9]+" | head -1)
-          echo "collected=$actual claimed=$claimed"
-          if [ "$actual" != "$claimed" ]; then
+          # -o addopts= neutralises a project-level addopts="-q": with the -q below
+          # it becomes -qq and pytest -qq drops the "N tests collected" line.
+          actual=$(python -m pytest --collect-only -q -o addopts= 2>/dev/null | grep -oE "[0-9]+ tests? collected" | grep -oE "^[0-9]+" || true)
+          claimed=$(grep -oE "tests-[0-9]+%20passing" README.md | grep -oE "[0-9]+" | head -1 || true)
+          echo "collected=${actual:-NOTHING} claimed=${claimed:-NONE}"
+          if [ -z "$actual" ]; then
+            echo "::warning::pytest collected nothing - the badge check did not run"
+          elif [ "$actual" != "$claimed" ]; then
             echo "::warning::README badge says $claimed but pytest collects $actual"
           fi
 
