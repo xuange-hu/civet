@@ -317,6 +317,19 @@ class _Parser:
             item: Any
             if not rest.strip():
                 item = self._child(indent)
+            elif rest.strip().startswith(("{", "[")):
+                # A flow collection as a sequence item. Checking for `key: value`
+                # first finds the colon *inside* the braces and re-injects the
+                # whole item as a mapping line, which silently loses the entry.
+                # Workflows rarely write `- {a: b}`, but the same reader is used
+                # for API descriptions where `- {name: id, in: path}` is the
+                # normal way to write a parameter.
+                item = self._value(rest.strip(), line)
+                out.append(item)
+                out.ilines[idx] = line
+                out.line = out.line or line
+                idx += 1
+                continue
             else:
                 kv = _split_key(rest.strip())
                 if kv is not None:

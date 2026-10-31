@@ -140,3 +140,23 @@ def test_load_all_multiple_documents():
 
 def test_types_are_exported():
     assert issubclass(S, str) and issubclass(M, dict) and issubclass(L, list)
+
+
+def test_sequence_of_inline_flow_mappings_is_not_lost():
+    """Regression: `- {name: id, in: path}` used to vanish.
+
+    `_split_key` found the colon inside the braces and treated the whole item
+    as a `key: value` line, re-injecting it as a mapping. Workflows rarely hit
+    this, but the same reader is reused for OpenAPI, where it is the normal way
+    to write a parameter - and the failure mode is silent omission.
+    """
+    d = loads("parameters:\n  - {name: id, in: path, required: true}\n  - {name: limit, in: query}\n")
+    assert len(d["parameters"]) == 2
+    assert d["parameters"][0]["name"] == "id"
+    assert d["parameters"][0]["in"] == "path"
+    assert d["parameters"][1]["name"] == "limit"
+
+
+def test_sequence_of_inline_flow_sequences_is_not_lost():
+    d = loads("matrix:\n  - [a, b]\n  - [c]\n")
+    assert [list(x) for x in d["matrix"]] == [["a", "b"], ["c"]]
