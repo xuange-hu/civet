@@ -1,0 +1,47 @@
+# Security policy
+
+## Scope
+
+**civet** — GitHub Actions workflow audit — is a static analysis tool: it reads **`.github/workflows/*.yml` and composite `action.yml` files** and prints a report.
+The security questions that apply to it are the ones that apply to any tool
+that parses untrusted input.
+
+Supported: the current release.
+
+## What this tool does with your files
+
+Nothing leaves your machine. There is no network client in the scanning path:
+the tool opens the files you point it at, parses them, and writes a report.
+It never writes to the files it reads.
+
+## Reporting a vulnerability in civet
+
+Use [GitHub private vulnerability reporting](https://github.com/xuange-hu/civet/security/advisories)
+on the Security tab. If private reporting is unavailable to you, open an issue
+marked `security`.
+
+Include:
+
+1. the version (`civet --version`);
+2. the input that triggers it — the actual file is preferred over a description;
+3. what you expected and what happened.
+
+For a parse failure, the smallest input that reproduces it is the whole report.
+
+## What counts as a vulnerability here
+
+- **A workflow construct that gets parsed into the wrong shape.** A silently mis-read `with:` or `permissions:` block produces a low risk score on a workflow that is not low risk.
+- **A rule that never fires on the construct it names.** The rule table is a promise; a broken matcher breaks the promise quietly.
+- **Unbounded work on a hostile file.** A workflow can be arbitrarily large and deeply nested.
+- **A path that escapes the directory it was pointed at.**
+
+## What does not count
+
+- A rule firing on input you consider correct. That is a false positive: open
+  an issue with the sample and it gets a regression test.
+- A rule you want added. Open an issue or a PR.
+
+## Timing
+
+I triage within a week and will confirm receipt. If a fix needs to sit in a
+branch for a while, the advisory goes out when the fix lands, not before.
