@@ -31,11 +31,20 @@ def test_manifest_descriptions_are_non_empty():
         assert len(tool["description"]) > 20, tool["name"]
 
 
-def test_manifest_count_matches_decorated_tools():
-    """A tool added to the server but not the manifest (or vice versa) is a bug."""
-    with open(mcp_server.__file__, encoding="utf-8") as fh:
-        body = fh.read()
-    assert body.count("@mcp.tool()") == len(mcp_server.tool_manifest())
+def test_served_names_match_manifest():
+    """The names an agent actually calls must equal the names the manifest
+    advertises. Counting decorators in the source cannot see this: civet once
+    served `civet_scan_tool` while the manifest promised `civet_scan`, so every
+    documented call was "unknown tool" while this suite stayed green."""
+    pytest.importorskip("mcp")
+    import asyncio
+
+    server = mcp_server.build_server()
+    tools = asyncio.run(server.list_tools())
+    served = {t.name for t in tools}
+    assert served == {t["name"] for t in mcp_server.tool_manifest()}
+    for t in tools:
+        assert (t.description or "").strip(), f"{t.name} has no description"
 
 
 def test_civet_rules_returns_json():

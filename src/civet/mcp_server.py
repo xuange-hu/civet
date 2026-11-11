@@ -85,29 +85,13 @@ def build_server():
     from mcp.server.fastmcp import FastMCP
 
     mcp = FastMCP(name="civet")
-
-    @mcp.tool()
-    def civet_scan_tool(
-        path: str = ".",
-        min_severity: str = "info",
-        ignore_rules: str = "",
-        ignore_groups: str = "",
-        max_findings: int = 60,
-    ) -> str:
-        return civet_scan(path, min_severity, ignore_rules, ignore_groups, max_findings)
-
-    @mcp.tool()
-    def civet_explain_tool(rule_id: str) -> str:
-        return civet_explain(rule_id)
-
-    @mcp.tool()
-    def civet_rules_tool(group: str = "") -> str:
-        return civet_rules(group)
-
-    @mcp.tool()
-    def civet_demo_tool() -> str:
-        return civet_demo()
-
+    # Register the module-level functions directly: their __name__ IS the tool
+    # name the manifest promises (registering wrappers would serve
+    # `civet_scan_tool` while tool_manifest() advertises `civet_scan`, so an
+    # agent calling the documented name gets "unknown tool"), and their
+    # docstrings become the descriptions FastMCP serves.
+    for fn in (civet_scan, civet_explain, civet_rules, civet_demo):
+        mcp.tool()(fn)
     return mcp
 
 
