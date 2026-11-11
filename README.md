@@ -20,6 +20,22 @@
 
 ---
 
+## Contents
+
+- [Why another workflow scanner](#why-another-workflow-scanner)
+- [Install](#install)
+- [Three steps](#three-steps)
+- [What the output looks like](#what-the-output-looks-like)
+- [explain — the part that teaches](#explain--the-part-that-teaches)
+- [Rule map](#rule-map)
+- [CI gate](#ci-gate)
+- [MCP server](#mcp-server)
+- [Design rules](#design-rules)
+- [Dogfood](#dogfood)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [License](#license)
+
 ## Why another workflow scanner
 
 `zizmor` (6.7k★, Rust) and `actionlint` (4.3k★, Go) are excellent. They are also
