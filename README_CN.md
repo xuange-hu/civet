@@ -7,7 +7,7 @@
 36 条确定性规则 · 零依赖 · 证据式输出 · SARIF 直传 CI · 自带 MCP Server
 
 [![CI](https://github.com/xuange-hu/civet/actions/workflows/ci.yml/badge.svg)](https://github.com/xuange-hu/civet/actions/workflows/ci.yml)
-[![tests](https://img.shields.io/badge/tests-179%20passing-brightgreen.svg)](tests/)
+[![tests](https://img.shields.io/badge/tests-180%20passing-brightgreen.svg)](tests/)
 [![rules](https://img.shields.io/badge/rules-37-red.svg)](#规则表)
 [![Dependencies](https://img.shields.io/badge/dependencies-0-blue.svg)](pyproject.toml)
 [![MCP](https://img.shields.io/badge/MCP-4%20tools-green.svg)](https://modelcontextprotocol.io)

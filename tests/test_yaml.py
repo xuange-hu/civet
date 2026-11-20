@@ -160,3 +160,18 @@ def test_sequence_of_inline_flow_mappings_is_not_lost():
 def test_sequence_of_inline_flow_sequences_is_not_lost():
     d = loads("matrix:\n  - [a, b]\n  - [c]\n")
     assert [list(x) for x in d["matrix"]] == [["a", "b"], ["c"]]
+
+
+
+def test_block_sequence_of_plain_scalars_is_not_dropped():
+    """CRITICAL regression: plain-scalar sequence items must not be dropped.
+
+    The scanner used to record line metadata for `- item` entries but skip
+    `out.append`, so every plain-scalar block sequence became empty. Trigger
+    names, event lists and branch lists are all written this way, making the
+    corresponding rules silent false negatives.
+    """
+    d = loads("triggers:\n  - push\n  - pull_request\n  - workflow_dispatch\n")
+    assert list(d["triggers"]) == ["push", "pull_request", "workflow_dispatch"]
+    d2 = loads("branches:\n  - main\n  - release\n")
+    assert list(d2["branches"]) == ["main", "release"]
